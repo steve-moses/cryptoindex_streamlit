@@ -21,12 +21,14 @@ df_pivot.sort_index(inplace=True)
 for column in df_pivot.columns:
     df_pivot[column] = pd.to_numeric(df_pivot[column], errors='coerce')
 
+# Aggreagate prices of individual assets
 initial_average = df_pivot.iloc[0].mean()
 initial_index_level = 1000
 divisor = initial_average / initial_index_level
 df_pivot['average_price'] = df_pivot.mean(axis=1)
 df_pivot['index_level'] = df_pivot['average_price'] / divisor
 
+# Build StreamLit app
 st.title('Cryptocurrency Index Dashboard')
 selected_assets = st.multiselect('Select cryptocurrencies for analysis', BASE_ASSETS, default=BASE_ASSETS)
 
@@ -60,14 +62,11 @@ confidence_level = st.slider("Confidence Level for VaR", 0.80, 0.99, 0.95, 0.01)
 # Daily returns
 daily_returns = df_pivot[selected_assets].pct_change().dropna()
 
-# Aggregate data for VaR calculations
-agg_data = daily_returns.mean(axis=1)
-
-# Calculate mean and standard deviation for VaR
-mean = agg_data.mean()
-std_dev = agg_data.std()
 
 # Run Monte Carlo Simulation for VaR
+agg_data = daily_returns.mean(axis=1)
+mean = agg_data.mean()
+std_dev = agg_data.std()
 simulated_returns = np.random.normal(loc=mean, scale=std_dev, size=num_simulations)
 sorted_returns = np.sort(simulated_returns)
 
@@ -85,7 +84,6 @@ st.subheader('Simulated returns with Choelsky Decomposition')
 cov_matrix = daily_returns.cov()
 L = np.linalg.cholesky(cov_matrix)
 simulated_returns_chol = []
-
 for _ in range(num_simulations):
     z = norm.rvs(size=len(selected_assets))
     simulated_return = np.dot(L, z)
@@ -99,7 +97,6 @@ st.plotly_chart(fig_hist)
 # Plotting daily return values of the index and the individual returns
 st.subheader('Daily Returns')
 fig = go.Figure()
-
 for asset in selected_assets:
     fig.add_trace(go.Scatter(x=daily_returns.index, y=daily_returns[asset], mode='lines', name=asset))
 
@@ -124,7 +121,7 @@ y = df_xgb['index_level'].loc[X.index]
 # Predict using xgb
 xgb_predictions = model.predict(X)
 
-# Create a Plotly figure for predictions
+# Plot the predictions
 fig_predictions = go.Figure()
 fig_predictions.add_trace(go.Scatter(x=df_xgb['timestamp'], y=y, mode='lines', name='Actual Data', line=dict(color='blue')))
 fig_predictions.add_trace(go.Scatter(x=df_xgb['timestamp'], y=xgb_predictions, mode='lines', name='XGBoost Prediction', line=dict(color='red')))
@@ -136,7 +133,6 @@ st.plotly_chart(fig_predictions)
 
 
 # Historical Volatility
-
 st.subheader('Historical Volatility')
 crypto_choice = st.selectbox("Choose a cryptocurrency to view its historical volatility:", selected_assets)
 window_size = st.slider("Choose the rolling window size for volatility calculation:", 10, 120, 30)

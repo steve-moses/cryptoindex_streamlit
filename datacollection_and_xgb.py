@@ -7,9 +7,6 @@ import os
 from dotenv import load_dotenv
 import requests
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from sklearn.ensemble import RandomForestRegressor
-from statsmodels.tsa.holtwinters import ExponentialSmoothing
-from statsmodels.tsa.arima.model import ARIMA
 from joblib import dump
 
 # Function to fetch Kaiko data
