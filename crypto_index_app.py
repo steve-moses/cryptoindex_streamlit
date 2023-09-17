@@ -3,56 +3,17 @@ import pandas as pd
 import numpy as np
 import os
 from joblib import load
-import matplotlib.pyplot as plt
 from scipy.stats import norm
 import plotly.graph_objects as go
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
 import requests
 import plotly.express as px
 
-# Function to fetch Kaiko data
-def fetch_kaiko_data(api_key, base_assets, quote_asset, start_time, end_time):
-    base_url = "https://us.market-api.kaiko.io/v2/data/trades.v1/spot_direct_exchange_rate"
-    headers = {
-        'Accept': 'application/json',
-        'X-Api-Key': api_key
-    }
-    
-    data_frames = []
-
-    for base in base_assets:
-        quote = 'usd'
-        endpoint_url = f"{base_url}/{base}/{quote_asset}"
-        params = {
-            "start_time": start_time,
-            "end_time": end_time,
-            "interval": "1d",
-            "page_size": 1000
-        }
-        
-        response = requests.get(endpoint_url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            data = response.json()["data"]
-            df = pd.DataFrame(data)
-            df['asset'] = base
-            data_frames.append(df)
-        else:
-            print(f"Failed to fetch data for {base}. Status Code: {response.status_code}")
-            print(response.text)
-            
-    final_df = pd.concat(data_frames, ignore_index=True)
-    return final_df
-
 # Parameters
-API_KEY = os.environ.get('KAIKO_API_KEY')
 BASE_ASSETS = ['bch', 'eth', 'xrp', 'ltc', 'dot']
 QUOTE_ASSET = 'usd'
 START_TIME = "2021-01-03T00:00:00Z"
 END_TIME = "2023-09-15T23:59:59Z"
-
-df = fetch_kaiko_data(API_KEY, BASE_ASSETS, QUOTE_ASSET, START_TIME, END_TIME)
+df =pd.read_csv('data.csv')
 df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
 df_pivot = df.pivot(index='timestamp', columns='asset', values='price')
 df_pivot.sort_index(inplace=True)
