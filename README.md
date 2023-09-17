@@ -39,8 +39,8 @@ This section highlights the various analytical tools embedded within the applica
 ## Usage
 
 ### Docker (Recommended):
-1. Build the Docker image: `docker build -t cryptoindex_dashboard .`
-2. Run the Docker container: `docker run -p 8501:8501 cryptoindex_dashboard`
+1. Build the Docker image: `docker build -t crypto-streamlit-app .`
+2. Run the Docker container: `docker run -p 8502:8501 crypto-streamlit-app`
 3. Access the dashboard by visiting `http://localhost:8501` in your web browser.
 
 ### Streamlit (Standalone):
