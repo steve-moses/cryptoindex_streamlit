@@ -1,5 +1,7 @@
 # Cryptocurrency Index Analysis
 
+Check out the deployed streamlit app here -> cryptoindexapp-bspok5sudvepnmqe4gvam7.streamlit.app/
+
 ## Analytics Tools:
 
 - **Individual Asset Performance**: A dashboard where users can choose to compare the individual cryptocurrency performance to the index performance.
