@@ -1,6 +1,6 @@
 # Cryptocurrency Index Analysis
 
-Check out the deployed streamlit app here -> cryptoindexapp-bspok5sudvepnmqe4gvam7.streamlit.app/
+Check out the deployed streamlit app [here](cryptoindexapp-bspok5sudvepnmqe4gvam7.streamlit.app/)
 
 ## Analytics Tools:
 
