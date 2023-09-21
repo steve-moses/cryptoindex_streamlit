@@ -14,7 +14,7 @@ Check out the deployed streamlit app [here](cryptoindexapp-bspok5sudvepnmqe4gvam
 ## Features
 
 - **Index Construction**:
-    - **Selected Assets**: The cryptocurrencies chosen for the index are Bitcoin Cash (bch), Ethereum (eth), Ripple (xrp), Litecoin (ltc), and Polkadot (dot). These were the top 5 non-Bitcoin and non-stablecoin cryptocurrencies by market cap as on January 3, 2021. 
+    - **Selected Assets**: The cryptocurrencies chosen for the index are Bitcoin Cash (bch), Ethereum (eth), Ripple (xrp), Litecoin (ltc), and Polkadot (dot). These were the top 5 non-Bitcoin and non-stablecoin cryptocurrencies by market cap as of January 3, 2021. 
     - **Data Processing & Aggregation**: Using the prices of the selected cryptocurrencies, an average is computed. Based on this average, an index level is  initialized to 1000. A divisor is utilized to ensure the index's continuity, allowing it to remain consistent and unaffected by structural changes like cryptocurrency splits, mergers, or any other corporate actions that can alter the number of available coins or their price. The divisor is then calculated using the formula:
   $$\text{Divisor} = \frac{\text{Initial Average Price}}{\text{Initial Index Level}}$$
 
@@ -22,22 +22,12 @@ Check out the deployed streamlit app [here](cryptoindexapp-bspok5sudvepnmqe4gvam
 
 ## Setup
 
-### Prerequisites
-- Docker
-
 ### Installation
 1. Clone the repository.
 2. Navigate to the project directory.
 
 ## Usage
-
-### Docker (Recommended):
-1. Build the Docker image: `docker build -t crypto-streamlit-app .`
-2. Run the Docker container: `docker run -p 8502:8501 crypto-streamlit-app`
-3. Access the dashboard by visiting `http://localhost:8501` in your web browser.
-
-### Streamlit (Standalone):
-Note: Running the application outside Docker is not recommended for consistent results. If you still wish to run it standalone:
+### Streamlit (Local):
 1. Install the requirements using: `pip install -r requirements.txt`
 2. Run the Streamlit app with: `streamlit run crypto_index_app.py`
 3. Navigate to the provided localhost URL in your browser.
@@ -45,4 +35,3 @@ Note: Running the application outside Docker is not recommended for consistent r
 
 ## Acknowledgements
 - Data sourced from the Kaiko API.
-- The application is built using Streamlit, Python, and Docker.
