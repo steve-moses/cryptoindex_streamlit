@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import requests
 import plotly.express as px
 
-# Parameters
+
 API_KEY = st.secrets["api_key"]
 def fetch_kaiko_data(api_key, base_assets, quote_asset, start_time, end_time):
     base_url = "https://us.market-api.kaiko.io/v2/data/trades.v1/spot_direct_exchange_rate"
@@ -86,18 +86,19 @@ else:
     st.write('Note: The data is normalized, so both asset prices and the index start at the same initial value for better comparison.')
 
 
-st.subheader("Number of Simulations for Value at Risk (VaR) and Simulated Returns")
+st.subheader("Simulated Portfolio Returns and Value at Risk (VaR)")
 
 # Create the slider for simulations
-num_simulations = st.slider("", 1000, 20000, 10000)
+st.write("Value at Risk (VaR) estimates the potential loss an investment portfolio might face over a specified period for a given confidence interval.")
+num_simulations = st.slider("Select number of Simulations", 1000, 20000, 10000)
 
-# VaR with Monte Carlo Simulations
-st.subheader('VaR with Monte Carlo Simulations')
-confidence_level = st.slider("Confidence Level for VaR", 0.80, 0.99, 0.95, 0.01)
+# Create the slider for Confidence Level
+confidence_level = st.slider("Select confidence level for VaR", 0.80, 0.99, 0.95, 0.01)
+st.write("The confidence level represents the likelihood that losses will not exceed the estimated VaR. For instance, a 95% confidence level means that there's a 95% chance that losses won't exceed the VaR amount in the specified period.")
 
 # Daily returns
 daily_returns = df_pivot[selected_assets].pct_change().dropna()
-
+initial_value = df_pivot['index_level'].iloc[-1]
 
 # Run Monte Carlo Simulation for VaR
 agg_data = daily_returns.mean(axis=1)
@@ -106,43 +107,71 @@ std_dev = agg_data.std()
 simulated_returns = np.random.normal(loc=mean, scale=std_dev, size=num_simulations)
 sorted_returns = np.sort(simulated_returns)
 
-# Calculate VaR
+# Calculate VaR for standard returns
 var_index = int((1 - confidence_level) * num_simulations)
 var = sorted_returns[var_index]
-initial_value = df_pivot['index_level'].iloc[-1]
 var_value = initial_value * var
 
-var_display_string = f"VaR after {num_simulations} simulations at {confidence_level * 100}% confidence level: ${var_value:.2f}"
-st.write(var_display_string)
-
-# Simulated returns with Choelsky Decomposition
-st.subheader('Simulated returns with Choelsky Decomposition')
+# Simulated returns with Cholesky Decomposition
 cov_matrix = daily_returns.cov()
 L = np.linalg.cholesky(cov_matrix)
-simulated_returns_chol = []
-for _ in range(num_simulations):
-    z = norm.rvs(size=len(selected_assets))
-    simulated_return = np.dot(L, z)
-    simulated_returns_chol.append(simulated_return)
-
+simulated_returns_chol = [np.dot(L, norm.rvs(size=len(selected_assets))) for _ in range(num_simulations)]
 simulated_returns_chol = np.array(simulated_returns_chol)
 
-# Plot the histogram of the simulated returns with Plotly
-fig_hist = px.histogram(x=simulated_returns_chol[:, 0], nbins=50, title=f'Histogram of Simulated Returns using Cholesky Decomposition after {num_simulations} simulations')
-st.plotly_chart(fig_hist)
-# Plotting daily return values of the index and the individual returns
-st.subheader('Daily Returns')
-fig = go.Figure()
-for asset in selected_assets:
-    fig.add_trace(go.Scatter(x=daily_returns.index, y=daily_returns[asset], mode='lines', name=asset))
+# Calculate VaR for Cholesky-based returns
+sorted_cholesky_returns = np.sort(simulated_returns_chol[:, 0])
+var_cholesky = sorted_cholesky_returns[var_index]
+var_value_cholesky = initial_value * var_cholesky
 
-fig.update_layout(
-    title='Daily Returns of Selected Assets',
-    xaxis_title='Date',
-    yaxis_title='Daily Return',
-    template="plotly_white"
-)
-st.plotly_chart(fig)
+
+# Combined histogram visualization
+fig_hist = go.Figure()
+
+fig_hist.add_trace(go.Histogram(x=simulated_returns, 
+                                name='Monte Carlo based Simulated Returns', 
+                                marker_color='blue', 
+                                opacity=0.3))
+fig_hist.add_trace(go.Histogram(x=simulated_returns_chol[:, 0], 
+                                name='Cholesky-based Simulated Returns', 
+                                marker_color='red', 
+                                opacity=0.3))
+
+# Add dummy traces for VaRs to show them in legend
+fig_hist.add_trace(go.Scatter(x=[None], y=[None], mode='lines',
+                              line=dict(color="blue", width=2, dash="dash"),
+                              name=f"VaR (Monte Carlo, {confidence_level * 100}% Confidence)"))
+
+fig_hist.add_trace(go.Scatter(x=[None], y=[None], mode='lines',
+                              line=dict(color="red", width=2, dash="dash"),
+                              name=f"VaR (Cholesky, {confidence_level * 100}% Confidence)"))
+
+# Now, add the actual VaR lines as shapes
+fig_hist.add_shape(go.layout.Shape(
+    type="line",
+    x0=var,
+    x1=var,
+    y0=0,
+    y1=1,
+    yref='paper',
+    line=dict(color="red", width=2, dash="dash")
+))
+fig_hist.add_shape(go.layout.Shape(
+    type="line",
+    x0=var_cholesky,
+    x1=var_cholesky,
+    y0=0,
+    y1=1,
+    yref='paper',
+    line=dict(color="blue", width=2, dash="dash")
+))
+
+fig_hist.update_layout(title=f'Histogram of Simulated Returns after {num_simulations} simulations',
+                       xaxis_title='Returns',
+                       yaxis_title='Frequency',
+                       barmode='overlay',
+                       template="plotly_dark")
+st.plotly_chart(fig_hist)
+
 
 st.subheader('Future Index Prediction using XGBoost')
 model = load('xgb_model.joblib')
