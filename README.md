@@ -1,13 +1,11 @@
 # Cryptocurrency Index Analysis
 
-Check out the deployed streamlit app [here](cryptoindexapp-bspok5sudvepnmqe4gvam7.streamlit.app/)
-
 ## Analytics Tools:
 
 - **Individual Asset Performance**: A dashboard where users can choose to compare the individual cryptocurrency performance to the index performance.
-- **Value at Risk (VaR)**: Offers analysis with Monte Carlo simulations to estimate VaR at user-defined confidence levels.
-- **Simulated Portfolio Returns**: Provides simulated returns using Cholesky Decomposition.
-- **Prediciton of Index value**: Uses a vanilla XGBoost model to predict future index values.
+- **Simulated Portfolio Returns**: Provides simulated returns using Monte Carlo simulations and Cholesky Decomposition.
+- **Value at Risk (VaR)**: Estimate VaR at user-defined confidence levels.
+- **Prediction of Index value**: Uses a vanilla XGBoost model to predict future index values.
 - **Daily Return Values**: Graphical representation of the daily return values of the index and individual assets.
 - **Historical Volatility**: Displays the historical volatility of all individual assets based on a user-defined rolling window.
   
@@ -21,6 +19,9 @@ Check out the deployed streamlit app [here](cryptoindexapp-bspok5sudvepnmqe4gvam
       The average price and index level for the cryptocurrencies are then computed using this divisor, resulting in the aggregated index.
 
 ## Setup
+
+### Requirements: 
+1. An API key from Kaiko with access to Aggregated VWAP prices is required to fetch pricing data for the index. 
 
 ### Installation
 1. Clone the repository.
