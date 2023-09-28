@@ -1,4 +1,4 @@
-# Cryptocurrency Index Analysis
+# Cryptocurrency Portfolio Index & Analytics Suite
 
 ## Analytics Tools:
 
