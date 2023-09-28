@@ -2,11 +2,11 @@
 
 ## Analytics Tools:
 
-- **Individual Asset Performance**: A dashboard where users can choose to compare the individual cryptocurrency performance to the index performance.
+- **Individual Asset Performance**: A dashboard where users can choose to compare component asset performance to the index performance.
+- **Daily Return Values**: A Graphical representation of the daily return values of the component assets.
 - **Simulated Portfolio Returns**: Provides simulated returns using Monte Carlo simulations and Cholesky Decomposition.
 - **Value at Risk (VaR)**: Estimate VaR at user-defined confidence levels.
 - **Prediction of Index value**: Uses a vanilla XGBoost model to predict future index values.
-- **Daily Return Values**: Graphical representation of the daily return values of the index and individual assets.
 - **Historical Volatility**: Displays the historical volatility of all individual assets based on a user-defined rolling window.
   
 ## Features
