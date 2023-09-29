@@ -7,11 +7,12 @@ from joblib import load
 from scipy.stats import norm
 import plotly.graph_objects as go
 import plotly.express as px
+from tqdm import tqdm
 
 
 API_KEY = st.secrets["api_key"]
 
-def fetch_kaiko_data(api_key, base_assets, quote_asset, start_time, end_time):
+def fetch_kaiko_data(api_key, base_assets, quote_asset, start_time, end_time, page_size=1000):
     base_url = "https://us.market-api.kaiko.io/v2/data/trades.v1/spot_direct_exchange_rate"
     headers = {
         'Accept': 'application/json',
@@ -20,26 +21,36 @@ def fetch_kaiko_data(api_key, base_assets, quote_asset, start_time, end_time):
     
     data_frames = []
 
-    for base in base_assets:
-        quote = 'usd'
+    for base in tqdm(base_assets, desc="Fetching assets"):
         endpoint_url = f"{base_url}/{base}/{quote_asset}"
         params = {
             "start_time": start_time,
             "end_time": end_time,
             "interval": "1d",
-            "page_size": 1000
+            "page_size": page_size
         }
         
-        response = requests.get(endpoint_url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            data = response.json()["data"]
-            df = pd.DataFrame(data)
-            df['asset'] = base
-            data_frames.append(df)
-        else:
-            print(f"Failed to fetch data for {base}. Status Code: {response.status_code}")
-            print(response.text)
+        while True: # Loop until no continuation_token is found
+            response = requests.get(endpoint_url, headers=headers, params=params)
+            
+            if response.status_code == 200:
+                data = response.json()["data"]
+                df = pd.DataFrame(data)
+                df['asset'] = base
+                data_frames.append(df)
+                
+                # Check for continuation_token and update params
+                continuation_token = response.json().get("continuation_token", None)
+                if continuation_token:
+                    params = {
+                        "continuation_token": continuation_token
+                    }
+                else:
+                    break
+            else:
+                print(f"Failed to fetch data for {base}. Status Code: {response.status_code}")
+                print(response.text)
+                break
             
     final_df = pd.concat(data_frames, ignore_index=True)
     return final_df
