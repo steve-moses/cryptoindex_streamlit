@@ -1,13 +1,21 @@
 # Cryptocurrency Portfolio Index & Analytics Suite
 
+The Cryptocurrency Portfolio Index & Analytics Suite is designed to be customizable. Every analytical tool provided, from the technical indicators to the Value at Risk (VaR) simulations, offers user defined inputs. This ensures that users have the flexibility to adjust settings based on their preferences or specific analysis requirements. 
+
+
 ## Analytics Tools:
 
 - **Individual Asset Performance**: A dashboard where users can choose to compare component asset performance to the index performance.
 - **Daily Return Values**: A Graphical representation of the daily return values of the component assets.
 - **Simulated Portfolio Returns**: Provides simulated returns using Monte Carlo simulations and Cholesky Decomposition.
 - **Value at Risk (VaR)**: Estimate VaR at user-defined confidence levels.
-- **Prediction of Index value**: Uses a vanilla XGBoost model to predict future index values.
-- **Historical Volatility**: Displays the historical volatility of all individual assets based on a user-defined rolling window.
+- **Technical Analysis**:
+    - **Historical Volatility**: Displays the historical volatility, providing insights on the stability and potential risk of assets.
+    - **Simple Moving Average (SMA)**: Used to smooth out short-term fluctuations and highlight longer-term trends or cycles.
+    - **Relative Strength Index (RSI)**: Measures the speed and change of price movements, often used to identify overbought or oversold conditions.
+    - **Bollinger Bands**: Represents the volatility around a moving average, indicating periods of potential overbought or oversold conditions in the market.
+    - **Moving Average Convergence Divergence (MACD)**: A trend-following momentum indicator that reveals changes in the strength, direction, momentum, and duration of a trend.
+
   
 ## Features
 

@@ -239,44 +239,9 @@ def compute_macd(data, short_window=12, long_window=26, signal_window=9):
 
 crypto_choice = st.selectbox("Choose an asset to view its technical indicators:", all_assets)
 
-# RSI
-st.write('### Relative Strength Index (RSI)')
-rsi_window = st.slider("RSI Window", 7, 14, 21)
-df_pivot['RSI'] = compute_rsi(df_pivot[crypto_choice], rsi_window)
-
-fig_rsi = go.Figure()
-fig_rsi.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['RSI'], mode='lines', name='RSI'))
-fig_rsi.update_layout(title=f'{crypto_choice} RSI ({rsi_window}-Day Rolling)', xaxis_title='Date', yaxis_title='RSI', template="plotly_dark")
-st.plotly_chart(fig_rsi)
-
-# Bollinger Bands
-st.write('### Bollinger Bands')
-bb_window = st.slider("Bollinger Bands Window", 10, 20, 40)
-num_std_dev = st.slider("Bollinger Bands Standard Deviations", 1, 2, 3)
-df_pivot['Upper_Bollinger'], df_pivot['Lower_Bollinger'] = compute_bollinger_bands(df_pivot[crypto_choice], bb_window, num_std_dev)
-
-fig_bb = go.Figure()
-fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot[crypto_choice], mode='lines', name='Asset Price'))
-fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Upper_Bollinger'], mode='lines', name='Upper Bollinger Band', line=dict(color='red')))
-fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Lower_Bollinger'], mode='lines', name='Lower Bollinger Band', line=dict(color='green')))
-fig_bb.update_layout(title=f'{crypto_choice} Bollinger Bands)', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
-st.plotly_chart(fig_bb)
-
-# MACD
-st.write('### Moving Average Convergence Divergence (MACD)')
-macd_short_window = st.slider("MACD Short Window", 5, 12, 15)
-macd_long_window = st.slider("MACD Long Window", 20, 26, 40)
-df_pivot['MACD'], df_pivot['Signal_Line'] = compute_macd(df_pivot[crypto_choice], macd_short_window, macd_long_window)
-
-fig_macd = go.Figure()
-fig_macd.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['MACD'], mode='lines', name='MACD'))
-fig_macd.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Signal_Line'], mode='lines', name='Signal Line'))
-fig_macd.update_layout(title=f'{crypto_choice} MACD ', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
-st.plotly_chart(fig_macd)
-
 # SMA
 st.write('### Simple Moving Average (SMA)')
-sma_window = st.slider("SMA Window", 30, 50, 100)
+sma_window = st.slider("SMA Window", 30, 100, 50)
 df_pivot['SMA'] = df_pivot[crypto_choice].rolling(window=sma_window).mean()
 
 fig_sma = go.Figure()
@@ -297,3 +262,37 @@ fig_volatility.update_layout(title=f'{crypto_choice} Smoothed Volatility ({vol_w
                             yaxis_title='Volatility',
                             template="plotly_dark")
 st.plotly_chart(fig_volatility)
+# RSI
+st.write('### Relative Strength Index (RSI)')
+rsi_window = st.slider("RSI Window", 7, 14, 21)
+df_pivot['RSI'] = compute_rsi(df_pivot[crypto_choice], rsi_window)
+
+fig_rsi = go.Figure()
+fig_rsi.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['RSI'], mode='lines', name='RSI'))
+fig_rsi.update_layout(title=f'{crypto_choice} RSI ({rsi_window}-Day Rolling)', xaxis_title='Date', yaxis_title='RSI', template="plotly_dark")
+st.plotly_chart(fig_rsi)
+
+# Bollinger Bands
+st.write('### Bollinger Bands')
+bb_window = st.slider("Bollinger Bands Window", 10, 20, 40)
+num_std_dev = st.slider("Bollinger Bands Standard Deviations", 1, 3, 2)
+df_pivot['Upper_Bollinger'], df_pivot['Lower_Bollinger'] = compute_bollinger_bands(df_pivot[crypto_choice], bb_window, num_std_dev)
+
+fig_bb = go.Figure()
+fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot[crypto_choice], mode='lines', name='Asset Price'))
+fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Upper_Bollinger'], mode='lines', name='Upper Bollinger Band', line=dict(color='red')))
+fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Lower_Bollinger'], mode='lines', name='Lower Bollinger Band', line=dict(color='green')))
+fig_bb.update_layout(title=f'{crypto_choice} Bollinger Bands)', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
+st.plotly_chart(fig_bb)
+
+# MACD
+st.write('### Moving Average Convergence Divergence (MACD)')
+macd_short_window = st.slider("MACD Short Window", 5, 15, 12)
+macd_long_window = st.slider("MACD Long Window", 20, 40, 26)
+df_pivot['MACD'], df_pivot['Signal_Line'] = compute_macd(df_pivot[crypto_choice], macd_short_window, macd_long_window)
+
+fig_macd = go.Figure()
+fig_macd.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['MACD'], mode='lines', name='MACD'))
+fig_macd.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Signal_Line'], mode='lines', name='Signal Line'))
+fig_macd.update_layout(title=f'{crypto_choice} MACD ', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
+st.plotly_chart(fig_macd)
