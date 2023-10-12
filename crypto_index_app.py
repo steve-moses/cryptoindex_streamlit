@@ -204,39 +204,96 @@ fig_hist.update_layout(title=f'Histogram of Simulated Returns after {num_simulat
 st.plotly_chart(fig_hist)
 
 
-# Predict using xgb
-st.subheader('Future Index Prediction using XGBoost')
-model = load('xgb_model.joblib')
-rolling_window_size = 7
-df_pivot['rolling_mean'] = df_pivot['Index'].rolling(window=rolling_window_size).mean().shift(-rolling_window_size + 1)
-df_xgb = df_pivot.reset_index().copy()
-df_xgb['days_from_start'] = (df_xgb['timestamp'] - df_xgb['timestamp'].min()).dt.days
-df_xgb['rolling_mean'] = df_pivot['Index'].rolling(window=rolling_window_size).mean().shift(-rolling_window_size + 1)
-X = df_xgb[['days_from_start', 'rolling_mean']]
-y = df_xgb['Index'].loc[X.index]
+# Technical Indicators
+st.subheader('Technical Indicators') 
+def compute_rsi(data, window=14):
+    delta = data.diff()
+    gain = (delta.where(delta > 0, 0)).fillna(0)
+    loss = (-delta.where(delta < 0, 0)).fillna(0)
+    
+    avg_gain = gain.rolling(window=window, min_periods=1).mean()
+    avg_loss = loss.rolling(window=window, min_periods=1).mean()
 
-xgb_predictions = model.predict(X)
-fig_predictions = go.Figure()
-fig_predictions.add_trace(go.Scatter(x=df_xgb['timestamp'], y=y, mode='lines', name='Actual Data', line=dict(color='blue')))
-fig_predictions.add_trace(go.Scatter(x=df_xgb['timestamp'], y=xgb_predictions, mode='lines', name='XGBoost Prediction', line=dict(color='red')))
-fig_predictions.update_layout(
-                      xaxis_title='Date',
-                      yaxis_title='Index Level',
-                      template="plotly_dark")
-st.plotly_chart(fig_predictions)
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    
+    return rsi
+
+def compute_bollinger_bands(data, window=20, num_std_dev=2):
+    sma = data.rolling(window=window).mean()
+    rolling_std = data.rolling(window=window).std()
+    upper_band = sma + (rolling_std * num_std_dev)
+    lower_band = sma - (rolling_std * num_std_dev)
+    
+    return upper_band, lower_band
+
+def compute_macd(data, short_window=12, long_window=26, signal_window=9):
+    short_ema = data.ewm(span=short_window, adjust=False).mean()
+    long_ema = data.ewm(span=long_window, adjust=False).mean()
+    
+    macd_line = short_ema - long_ema
+    signal_line = macd_line.ewm(span=signal_window, adjust=False).mean()
+    
+    return macd_line, signal_line
 
 
-# Historical Volatility
-st.subheader('Historical Volatility')
-crypto_choice = st.selectbox("Choose an asset to view its historical volatility:", all_assets)
-window_size = st.slider("Choose the rolling window size for volatility calculation:", 10, 120, 30)
+crypto_choice = st.selectbox("Choose an asset to view its technical indicators:", all_assets)
 
-smoothed_volatility = df_pivot[crypto_choice].pct_change().rolling(window=window_size).std() * np.sqrt(252)
+# RSI
+st.write('### Relative Strength Index (RSI)')
+rsi_window = st.slider("RSI Window", 7, 14, 21)
+df_pivot['RSI'] = compute_rsi(df_pivot[crypto_choice], rsi_window)
+
+fig_rsi = go.Figure()
+fig_rsi.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['RSI'], mode='lines', name='RSI'))
+fig_rsi.update_layout(title=f'{crypto_choice} RSI ({rsi_window}-Day Rolling)', xaxis_title='Date', yaxis_title='RSI', template="plotly_dark")
+st.plotly_chart(fig_rsi)
+
+# Bollinger Bands
+st.write('### Bollinger Bands')
+bb_window = st.slider("Bollinger Bands Window", 10, 20, 40)
+num_std_dev = st.slider("Bollinger Bands Standard Deviations", 1, 2, 3)
+df_pivot['Upper_Bollinger'], df_pivot['Lower_Bollinger'] = compute_bollinger_bands(df_pivot[crypto_choice], bb_window, num_std_dev)
+
+fig_bb = go.Figure()
+fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot[crypto_choice], mode='lines', name='Asset Price'))
+fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Upper_Bollinger'], mode='lines', name='Upper Bollinger Band', line=dict(color='red')))
+fig_bb.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Lower_Bollinger'], mode='lines', name='Lower Bollinger Band', line=dict(color='green')))
+fig_bb.update_layout(title=f'{crypto_choice} Bollinger Bands)', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
+st.plotly_chart(fig_bb)
+
+# MACD
+st.write('### Moving Average Convergence Divergence (MACD)')
+macd_short_window = st.slider("MACD Short Window", 5, 12, 15)
+macd_long_window = st.slider("MACD Long Window", 20, 26, 40)
+df_pivot['MACD'], df_pivot['Signal_Line'] = compute_macd(df_pivot[crypto_choice], macd_short_window, macd_long_window)
+
+fig_macd = go.Figure()
+fig_macd.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['MACD'], mode='lines', name='MACD'))
+fig_macd.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['Signal_Line'], mode='lines', name='Signal Line'))
+fig_macd.update_layout(title=f'{crypto_choice} MACD ', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
+st.plotly_chart(fig_macd)
+
+# SMA
+st.write('### Simple Moving Average (SMA)')
+sma_window = st.slider("SMA Window", 30, 50, 100)
+df_pivot['SMA'] = df_pivot[crypto_choice].rolling(window=sma_window).mean()
+
+fig_sma = go.Figure()
+fig_sma.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot[crypto_choice], mode='lines', name='Asset Price'))
+fig_sma.add_trace(go.Scatter(x=df_pivot.index, y=df_pivot['SMA'], mode='lines', name='SMA', line=dict(color='orange')))
+fig_sma.update_layout(title=f'{crypto_choice} SMA ({sma_window}-Day Rolling)', xaxis_title='Date', yaxis_title='Value', template="plotly_dark")
+st.plotly_chart(fig_sma)
+
+# Volatility 
+st.write('### Volatility')
+vol_window = st.slider(f"Choose the rolling window size for {crypto_choice} volatility calculation:", 10, 120, 30)
+
+smoothed_volatility = df_pivot[crypto_choice].pct_change().rolling(window=vol_window).std() * np.sqrt(365)
 fig_volatility = go.Figure()
 fig_volatility.add_trace(go.Scatter(x=smoothed_volatility.index, y=smoothed_volatility, mode='lines', name=f'{crypto_choice.upper()} Volatility', line=dict(color='blue')))
-fig_volatility.update_layout(title=f'{crypto_choice} Smoothed Volatility ({window_size}-Day Rolling)',
+fig_volatility.update_layout(title=f'{crypto_choice} Smoothed Volatility ({vol_window}-Day Rolling)',
                             xaxis_title='Date',
                             yaxis_title='Volatility',
                             template="plotly_dark")
 st.plotly_chart(fig_volatility)
-
